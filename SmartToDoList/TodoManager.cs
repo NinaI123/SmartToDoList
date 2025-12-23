@@ -11,21 +11,14 @@ namespace SmartToDoList
         private List<TodoItem> todos = new();
         private const string FilePath = "todos.json";
 
-        public void AddTask(string title, string priority, string description)
+        public void AddTask(string title, string priority, string description, DateTime dueDate)
         {
-            //int id = todos.Count == 0 ? 1 : todos[^1].Id + 1;
-            //or we can us e a simpler techn.
-            int id;
-            if (todos.Count == 0)
-            {
-                id = 1;
-            }
-            else
-            {
-                id = todos[todos.Count - 1].Id; // tkae the Id of the last item by using count to getthe number form the last index and then increment the iD
-            }
-            todos.Add(new TodoItem(id, title, priority, description));
+            int id = todos.Count == 0 ? 1 : todos[todos.Count - 1].Id + 1;
+
+            todos.Add(new TodoItem(id, title, priority, description, dueDate));
+            SaveToFile();
         }
+
         public void ViewTasks()
         {
             if (todos.Count == 0)
@@ -35,9 +28,11 @@ namespace SmartToDoList
             }
             foreach (var todo in todos)
             {
+                string status = todo.IsCompleted ? "✔" : " ";
+                string overdue = (!todo.IsCompleted && todo.DueDate < DateTime.Now) ? "OverDue" : "";
                 Console.WriteLine(
 
-                        $"{todo.Id}. [{(todo.IsCompleted ? "Yes" : " ")}] {todo.Title} ({todo.Priority}) : [{todo.Description}]"
+                        $"{todo.Id}. [{status}] {todo.Title} ({todo.Priority}) | Due: {todo.DueDate:yyyy-MM-dd}  || [{todo.Description}]"
                     );
             }
         }
@@ -69,13 +64,40 @@ namespace SmartToDoList
 
         private void SaveToFile()
         {
-            var json = JsonSerializer.Serialize(todos.Count, new JsonSerializerOptions
+            var json = JsonSerializer.Serialize(todos, new JsonSerializerOptions
             {
                 WriteIndented = true
             }
                 );
             File.WriteAllText(FilePath, json);
         }
+        public void ShowReminders()
+        {
+            Console.WriteLine("\n REMINDERS");
 
+            var upcomingTasks = todos
+                .Where(t => !t.IsCompleted && t.DueDate <= DateTime.Now.AddHours(24))
+                .ToList();
+
+            if (upcomingTasks.Count == 0)
+            {
+                Console.WriteLine("No upcoming tasks.");
+                return;
+            }
+
+            foreach (var task in upcomingTasks)
+            {
+                if (task.DueDate.HasValue)
+                {
+                    TimeSpan remaining = task.DueDate.Value - DateTime.Now;
+
+
+                    Console.WriteLine(
+                        $"{task.Title} | Due in {remaining.Hours}h {remaining.Minutes}m"
+                    );
+                }
+            }
+
+        }
     }
 }

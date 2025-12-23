@@ -9,7 +9,7 @@ class Program
     {
         TodoManager manager = new();
         manager.LoadFromFile();
-
+        manager.ShowReminders();
         while (true)
         {
             Console.WriteLine("\n--- Smart To-Do List ---");
@@ -33,7 +33,10 @@ class Program
                     Console.WriteLine("Give a task description:");
                     string description = Console.ReadLine();
 
-                    manager.AddTask(title, priority, description);
+                    Console.WriteLine("Due Date (yyyy-MM-dd):");
+                    DateTime dueDate = DateTime.Parse(Console.ReadLine());
+
+                    manager.AddTask(title, priority, description, dueDate);
                     break;
                 case "2":
                     manager.ViewTasks();
